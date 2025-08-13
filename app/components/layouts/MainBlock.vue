@@ -1,24 +1,35 @@
 <script setup lang="ts">
 import {useApartmentsStore} from "@stores/apartment";
 import type {Apartment} from "@interfaces/apartments";
+
+const BREAKPOINT_WIDE_MIN = 1400
+const BREAKPOINT_MEDIUM_MIN = 315
+const BREAKPOINT_MEDIUM_MAX = 1399
+const COUNT_LOAD_APARTMENTS = 20
+
 const store = useApartmentsStore();
+
 const allApartments = computed(() => store.filteredApartments)
-const visibleApartments = computed(() => store.filteredApartments.slice(0, visibleCount.value))
+const visibleApartments = computed(() => allApartments.value.slice(0, visibleCount.value))
 
 const isLoading = computed(() => store.isLoaded)
 
 const width = ref(0)
-const isWide = computed(() => width.value >= 1400)
-const isMedium = computed(() => width.value > 314 && width.value < 1400)
 
-const countLoadApartments = ref(20)
+const isWide = computed(() => width.value >= BREAKPOINT_WIDE_MIN)
+const isMedium = computed(() =>
+    width.value >= BREAKPOINT_MEDIUM_MIN &&
+    width.value <= BREAKPOINT_MEDIUM_MAX
+)
+
+const countLoadApartments = ref(COUNT_LOAD_APARTMENTS)
 const visibleCount = ref(countLoadApartments.value)
 const onResize = () => {
   width.value = window.innerWidth
 }
 
 const loadMore = () => {
-  visibleCount.value += countLoadApartments.value
+  visibleCount.value += COUNT_LOAD_APARTMENTS
 }
 
 const toggleSort = (key: keyof Apartment) => {
@@ -32,325 +43,333 @@ onMounted(async () => {
   onResize()
   window.addEventListener('resize', onResize)
 })
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', onResize)
+})
 </script>
 
 <template>
   <div class="loading container" v-if="!isLoading">
     Загрузка...
   </div>
-  <div id="top" v-else>
-    <main class="main">
-      <h1 class="main__title">Квартиры</h1>
+  <main class="main" v-else>
+    <h1 class="main__title">Квартиры</h1>
+    <div class="main__apartments" v-if="visibleApartments.length !== 0">
+      <table class="main__apartments-table" v-if="isWide">
+        <thead>
+        <tr class="main__apartments-header-row">
+          <th class="main__apartments-header-cell">
+            <div class="main__apartments-inner">Планировка</div>
+          </th>
+          <th class="main__apartments-header-cell">
+            <div class="main__apartments-inner ">Квартира</div>
+          </th>
 
-      <div class="main__apartments" v-if="visibleApartments.length !== 0">
-        <table class="main__apartments-table" v-if="isWide">
-          <thead>
-          <tr class="main__apartments-header-row">
-            <th class="main__apartments-header-cell"><div class="main__apartments-inner">Планировка</div></th>
-            <th class="main__apartments-header-cell"><div class="main__apartments-inner ">Квартира</div></th>
-
-            <th
-                @click="toggleSort('area')"
-                class="main__apartments-sort"
-                role="button"
-                tabindex="0"
-            >
-              <div class="main__apartments-inner">
-                <span class="main__apartments-sort-text">S, м²</span>
-                <span class="main__apartments-sort-icons">
-                    <svg
-                        :class="{'main__apartments-sort-icon_active': isSortActive('area', 'asc')}"
-                        class="main__apartments-sort-icon"
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="7"
-                        height="4"
-                        viewBox="0 0 7 4"
-                        fill="currentColor"
-                    >
-                      <g opacity="0.4">
-                        <path fill-rule="evenodd" clip-rule="evenodd"
-                              d="M4.03429 0.253496C3.87202 0.0898395 3.65776 0 3.42808 0C3.19896 0 2.98356 0.0898396 2.82244 0.253496L0.167341 3.01277C-0.0560599 3.2388 -0.0560599 3.60445 0.167341 3.83048C0.39017 4.05651 0.75184 4.05651 0.97524 3.83048L3.42808 1.27549L5.88148 3.83048C6.10488 4.05651 6.46598 4.05651 6.68938 3.83048C6.91278 3.60445 6.91278 3.2388 6.68938 3.01277L4.03429 0.253496Z"
-                        />
-                      </g>
-                    </svg>
-                    <svg
-                        :class="[
-                        'main__apartments-sort-icon',
-                        'main__apartments-sort-icon_flipped',
-                        {'main__apartments-sort-icon_active': isSortActive('area', 'desc')}
-                      ]"
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="7"
-                        height="4"
-                        viewBox="0 0 7 4"
-                        fill="currentColor"
-                    >
-                      <g opacity="0.4">
-                        <path fill-rule="evenodd" clip-rule="evenodd"
-                              d="M4.03429 0.253496C3.87202 0.0898395 3.65776 0 3.42808 0C3.19896 0 2.98356 0.0898396 2.82244 0.253496L0.167341 3.01277C-0.0560599 3.2388 -0.0560599 3.60445 0.167341 3.83048C0.39017 4.05651 0.75184 4.05651 0.97524 3.83048L3.42808 1.27549L5.88148 3.83048C6.10488 4.05651 6.46598 4.05651 6.68938 3.83048C6.91278 3.60445 6.91278 3.2388 6.68938 3.01277L4.03429 0.253496Z"
-                        />
-                      </g>
-                    </svg>
-                  </span>
-              </div>
-            </th>
-
-            <th
-                @click="toggleSort('floor')"
-                class="main__apartments-sort"
-                role="button"
-                tabindex="0"
-            >
-              <div class="main__apartments-inner">
-                <span class="main__apartments-sort-text">Этаж</span>
-                <span class="main__apartments-sort-icons">
-                    <svg
-                        :class="{'main__apartments-sort-icon_active': isSortActive('floor', 'asc')}"
-                        class="main__apartments-sort-icon"
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="7"
-                        height="4"
-                        viewBox="0 0 7 4"
-                        fill="currentColor"
-                    >
-                      <g opacity="0.4">
-                        <path fill-rule="evenodd" clip-rule="evenodd"
-                              d="M4.03429 0.253496C3.87202 0.0898395 3.65776 0 3.42808 0C3.19896 0 2.98356 0.0898396 2.82244 0.253496L0.167341 3.01277C-0.0560599 3.2388 -0.0560599 3.60445 0.167341 3.83048C0.39017 4.05651 0.75184 4.05651 0.97524 3.83048L3.42808 1.27549L5.88148 3.83048C6.10488 4.05651 6.46598 4.05651 6.68938 3.83048C6.91278 3.60445 6.91278 3.2388 6.68938 3.01277L4.03429 0.253496Z"
-                        />
-                      </g>
-                    </svg>
-                    <svg
-                        :class="[
-                        'main__apartments-sort-icon',
-                        'main__apartments-sort-icon_flipped',
-                        {'main__apartments-sort-icon_active': isSortActive('floor', 'desc')}
-                      ]"
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="7"
-                        height="4"
-                        viewBox="0 0 7 4"
-                        fill="currentColor"
-                    >
-                      <g opacity="0.4">
-                        <path fill-rule="evenodd" clip-rule="evenodd"
-                              d="M4.03429 0.253496C3.87202 0.0898395 3.65776 0 3.42808 0C3.19896 0 2.98356 0.0898396 2.82244 0.253496L0.167341 3.01277C-0.0560599 3.2388 -0.0560599 3.60445 0.167341 3.83048C0.39017 4.05651 0.75184 4.05651 0.97524 3.83048L3.42808 1.27549L5.88148 3.83048C6.10488 4.05651 6.46598 4.05651 6.68938 3.83048C6.91278 3.60445 6.91278 3.2388 6.68938 3.01277L4.03429 0.253496Z"
-                        />
-                      </g>
-                    </svg>
-                  </span>
-              </div>
-            </th>
-
-            <th
-                @click="toggleSort('price')"
-                class="main__apartments-sort"
-                role="button"
-                tabindex="0"
-            >
-              <div class="main__apartments-inner">
-                <span class="main__apartments-sort-text text-green">Цена, ₽</span>
-                <span class="main__apartments-sort-icons">
-                    <svg
-                        :class="{'main__apartments-sort-icon_active': isSortActive('price', 'asc')}"
-                        class="main__apartments-sort-icon"
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="7"
-                        height="4"
-                        viewBox="0 0 7 4"
-                        fill="currentColor"
-                    >
-                      <g opacity="0.4">
-                        <path fill-rule="evenodd" clip-rule="evenodd"
-                              d="M4.03429 0.253496C3.87202 0.0898395 3.65776 0 3.42808 0C3.19896 0 2.98356 0.0898396 2.82244 0.253496L0.167341 3.01277C-0.0560599 3.2388 -0.0560599 3.60445 0.167341 3.83048C0.39017 4.05651 0.75184 4.05651 0.97524 3.83048L3.42808 1.27549L5.88148 3.83048C6.10488 4.05651 6.46598 4.05651 6.68938 3.83048C6.91278 3.60445 6.91278 3.2388 6.68938 3.01277L4.03429 0.253496Z"
-                        />
-                      </g>
-                    </svg>
-                    <svg
-                        :class="[
-                      'main__apartments-sort-icon',
-                      'main__apartments-sort-icon_flipped',
-                      {'main__apartments-sort-icon_active': isSortActive('price', 'desc')}
-                      ]"
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="7"
-                        height="4"
-                        viewBox="0 0 7 4"
-                        fill="currentColor"
-                    >
-                      <g opacity="0.4">
-                        <path fill-rule="evenodd" clip-rule="evenodd"
-                              d="M4.03429 0.253496C3.87202 0.0898395 3.65776 0 3.42808 0C3.19896 0 2.98356 0.0898396 2.82244 0.253496L0.167341 3.01277C-0.0560599 3.2388 -0.0560599 3.60445 0.167341 3.83048C0.39017 4.05651 0.75184 4.05651 0.97524 3.83048L3.42808 1.27549L5.88148 3.83048C6.10488 4.05651 6.46598 4.05651 6.68938 3.83048C6.91278 3.60445 6.91278 3.2388 6.68938 3.01277L4.03429 0.253496Z"
-                        />
-                      </g>
-                    </svg>
-                  </span>
-              </div>
-            </th>
-          </tr>
-          </thead>
-
-          <tbody>
-          <tr v-for="apt in visibleApartments" :key="apt.id" class="main__apartments-row">
-            <td><img :src="apt.image" alt="Планировка" /></td>
-            <td class="text-medium"><p>{{ apt.rooms }}-комнатная {{ apt.title }}</p></td>
-            <td><p>{{ apt.area }}</p></td>
-            <td><p>{{ apt.floor }} <span class="text-opacity">из {{ apt.totalFloors }} этаж</span></p></td>
-            <td><p>{{ apt.price.toLocaleString('ru-RU') }}</p></td>
-          </tr>
-          </tbody>
-        </table>
-
-        <div class="main__apartments-cards" v-else-if="isMedium">
-          <div class="main__apartments-header">
-            <button
-                @click="toggleSort('area')"
-                class="main__apartments-sort"
-                type="button"
-            >
+          <th
+              @click="toggleSort('area')"
+              class="main__apartments-sort"
+              role="button"
+              tabindex="0"
+          >
+            <div class="main__apartments-inner">
               <span class="main__apartments-sort-text">S, м²</span>
               <span class="main__apartments-sort-icons">
-                <svg
-                    :class="{'main__apartments-sort-icon_active': isSortActive('area', 'desc')}"
-                    class="main__apartments-sort-icon"
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="7"
-                    height="4"
-                    viewBox="0 0 7 4"
-                    fill="currentColor"
-                >
-                  <g opacity="0.4">
-                    <path fill-rule="evenodd" clip-rule="evenodd"
-                          d="M4.03429 0.253496C3.87202 0.0898395 3.65776 0 3.42808 0C3.19896 0 2.98356 0.0898396 2.82244 0.253496L0.167341 3.01277C-0.0560599 3.2388 -0.0560599 3.60445 0.167341 3.83048C0.39017 4.05651 0.75184 4.05651 0.97524 3.83048L3.42808 1.27549L5.88148 3.83048C6.10488 4.05651 6.46598 4.05651 6.68938 3.83048C6.91278 3.60445 6.91278 3.2388 6.68938 3.01277L4.03429 0.253496Z"
-                    />
-                  </g>
-                </svg>
-                <svg
-                    :class="[
-                    'main__apartments-sort-icon',
-                    'main__apartments-sort-icon_flipped',
-                    {'main__apartments-sort-icon_active': isSortActive('area', 'asc')}
-                  ]"
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="7"
-                    height="4"
-                    viewBox="0 0 7 4"
-                    fill="currentColor"
-                >
-                  <g opacity="0.4">
-                    <path fill-rule="evenodd" clip-rule="evenodd"
-                          d="M4.03429 0.253496C3.87202 0.0898395 3.65776 0 3.42808 0C3.19896 0 2.98356 0.0898396 2.82244 0.253496L0.167341 3.01277C-0.0560599 3.2388 -0.0560599 3.60445 0.167341 3.83048C0.39017 4.05651 0.75184 4.05651 0.97524 3.83048L3.42808 1.27549L5.88148 3.83048C6.10488 4.05651 6.46598 4.05651 6.68938 3.83048C6.91278 3.60445 6.91278 3.2388 6.68938 3.01277L4.03429 0.253496Z"
-                    />
-                  </g>
-                </svg>
-              </span>
-            </button>
-            <button @click="toggleSort('floor')" class="main__apartments-sort" type="button">
+                  <svg
+                      :class="{'main__apartments-sort-icon_active': isSortActive('area', 'asc')}"
+                      class="main__apartments-sort-icon"
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="7"
+                      height="4"
+                      viewBox="0 0 7 4"
+                      fill="currentColor"
+                  >
+                    <g opacity="0.4">
+                      <path fill-rule="evenodd" clip-rule="evenodd"
+                            d="M4.03429 0.253496C3.87202 0.0898395 3.65776 0 3.42808 0C3.19896 0 2.98356 0.0898396 2.82244 0.253496L0.167341 3.01277C-0.0560599 3.2388 -0.0560599 3.60445 0.167341 3.83048C0.39017 4.05651 0.75184 4.05651 0.97524 3.83048L3.42808 1.27549L5.88148 3.83048C6.10488 4.05651 6.46598 4.05651 6.68938 3.83048C6.91278 3.60445 6.91278 3.2388 6.68938 3.01277L4.03429 0.253496Z"
+                      />
+                    </g>
+                  </svg>
+                  <svg
+                      :class="[
+                      'main__apartments-sort-icon',
+                      'main__apartments-sort-icon_flipped',
+                      {'main__apartments-sort-icon_active': isSortActive('area', 'desc')}
+                    ]"
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="7"
+                      height="4"
+                      viewBox="0 0 7 4"
+                      fill="currentColor"
+                  >
+                    <g opacity="0.4">
+                      <path fill-rule="evenodd" clip-rule="evenodd"
+                            d="M4.03429 0.253496C3.87202 0.0898395 3.65776 0 3.42808 0C3.19896 0 2.98356 0.0898396 2.82244 0.253496L0.167341 3.01277C-0.0560599 3.2388 -0.0560599 3.60445 0.167341 3.83048C0.39017 4.05651 0.75184 4.05651 0.97524 3.83048L3.42808 1.27549L5.88148 3.83048C6.10488 4.05651 6.46598 4.05651 6.68938 3.83048C6.91278 3.60445 6.91278 3.2388 6.68938 3.01277L4.03429 0.253496Z"
+                      />
+                    </g>
+                  </svg>
+                </span>
+            </div>
+          </th>
+
+          <th
+              @click="toggleSort('floor')"
+              class="main__apartments-sort"
+              role="button"
+              tabindex="0"
+          >
+            <div class="main__apartments-inner">
               <span class="main__apartments-sort-text">Этаж</span>
               <span class="main__apartments-sort-icons">
-                <svg
-                    :class="{'main__apartments-sort-icon_active': isSortActive('floor', 'desc')}"
-                    class="main__apartments-sort-icon"
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="7"
-                    height="4"
-                    viewBox="0 0 7 4"
-                    fill="currentColor"
-                >
-                  <g opacity="0.4">
-                    <path fill-rule="evenodd" clip-rule="evenodd"
-                          d="M4.03429 0.253496C3.87202 0.0898395 3.65776 0 3.42808 0C3.19896 0 2.98356 0.0898396 2.82244 0.253496L0.167341 3.01277C-0.0560599 3.2388 -0.0560599 3.60445 0.167341 3.83048C0.39017 4.05651 0.75184 4.05651 0.97524 3.83048L3.42808 1.27549L5.88148 3.83048C6.10488 4.05651 6.46598 4.05651 6.68938 3.83048C6.91278 3.60445 6.91278 3.2388 6.68938 3.01277L4.03429 0.253496Z"
-                    />
-                  </g>
-                </svg>
-                <svg
-                    :class="[
-                    'main__apartments-sort-icon',
-                    'main__apartments-sort-icon_flipped',
-                    {'main__apartments-sort-icon_active': isSortActive('floor', 'asc')}
-                  ]"
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="7"
-                    height="4"
-                    viewBox="0 0 7 4"
-                    fill="currentColor"
-                >
-                  <g opacity="0.4">
-                    <path fill-rule="evenodd" clip-rule="evenodd"
-                          d="M4.03429 0.253496C3.87202 0.0898395 3.65776 0 3.42808 0C3.19896 0 2.98356 0.0898396 2.82244 0.253496L0.167341 3.01277C-0.0560599 3.2388 -0.0560599 3.60445 0.167341 3.83048C0.39017 4.05651 0.75184 4.05651 0.97524 3.83048L3.42808 1.27549L5.88148 3.83048C6.10488 4.05651 6.46598 4.05651 6.68938 3.83048C6.91278 3.60445 6.91278 3.2388 6.68938 3.01277L4.03429 0.253496Z"
-                    />
-                  </g>
-                </svg>
-              </span>
-            </button>
-            <button @click="toggleSort('price')" class="main__apartments-sort" type="button">
+                  <svg
+                      :class="{'main__apartments-sort-icon_active': isSortActive('floor', 'asc')}"
+                      class="main__apartments-sort-icon"
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="7"
+                      height="4"
+                      viewBox="0 0 7 4"
+                      fill="currentColor"
+                  >
+                    <g opacity="0.4">
+                      <path fill-rule="evenodd" clip-rule="evenodd"
+                            d="M4.03429 0.253496C3.87202 0.0898395 3.65776 0 3.42808 0C3.19896 0 2.98356 0.0898396 2.82244 0.253496L0.167341 3.01277C-0.0560599 3.2388 -0.0560599 3.60445 0.167341 3.83048C0.39017 4.05651 0.75184 4.05651 0.97524 3.83048L3.42808 1.27549L5.88148 3.83048C6.10488 4.05651 6.46598 4.05651 6.68938 3.83048C6.91278 3.60445 6.91278 3.2388 6.68938 3.01277L4.03429 0.253496Z"
+                      />
+                    </g>
+                  </svg>
+                  <svg
+                      :class="[
+                      'main__apartments-sort-icon',
+                      'main__apartments-sort-icon_flipped',
+                      {'main__apartments-sort-icon_active': isSortActive('floor', 'desc')}
+                    ]"
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="7"
+                      height="4"
+                      viewBox="0 0 7 4"
+                      fill="currentColor"
+                  >
+                    <g opacity="0.4">
+                      <path fill-rule="evenodd" clip-rule="evenodd"
+                            d="M4.03429 0.253496C3.87202 0.0898395 3.65776 0 3.42808 0C3.19896 0 2.98356 0.0898396 2.82244 0.253496L0.167341 3.01277C-0.0560599 3.2388 -0.0560599 3.60445 0.167341 3.83048C0.39017 4.05651 0.75184 4.05651 0.97524 3.83048L3.42808 1.27549L5.88148 3.83048C6.10488 4.05651 6.46598 4.05651 6.68938 3.83048C6.91278 3.60445 6.91278 3.2388 6.68938 3.01277L4.03429 0.253496Z"
+                      />
+                    </g>
+                  </svg>
+                </span>
+            </div>
+          </th>
+
+          <th
+              @click="toggleSort('price')"
+              class="main__apartments-sort"
+              role="button"
+              tabindex="0"
+          >
+            <div class="main__apartments-inner">
               <span class="main__apartments-sort-text text-green">Цена, ₽</span>
               <span class="main__apartments-sort-icons">
-                <svg
-                    :class="{'main__apartments-sort-icon_active': isSortActive('price', 'desc')}"
-                    class="main__apartments-sort-icon"
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="7"
-                    height="4"
-                    viewBox="0 0 7 4"
-                    fill="currentColor"
-                >
-                  <g opacity="0.4">
-                    <path fill-rule="evenodd" clip-rule="evenodd"
-                          d="M4.03429 0.253496C3.87202 0.0898395 3.65776 0 3.42808 0C3.19896 0 2.98356 0.0898396 2.82244 0.253496L0.167341 3.01277C-0.0560599 3.2388 -0.0560599 3.60445 0.167341 3.83048C0.39017 4.05651 0.75184 4.05651 0.97524 3.83048L3.42808 1.27549L5.88148 3.83048C6.10488 4.05651 6.46598 4.05651 6.68938 3.83048C6.91278 3.60445 6.91278 3.2388 6.68938 3.01277L4.03429 0.253496Z"
-                    />
-                  </g>
-                </svg>
-                <svg
-                    :class="[
+                  <svg
+                      :class="{'main__apartments-sort-icon_active': isSortActive('price', 'asc')}"
+                      class="main__apartments-sort-icon"
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="7"
+                      height="4"
+                      viewBox="0 0 7 4"
+                      fill="currentColor"
+                  >
+                    <g opacity="0.4">
+                      <path fill-rule="evenodd" clip-rule="evenodd"
+                            d="M4.03429 0.253496C3.87202 0.0898395 3.65776 0 3.42808 0C3.19896 0 2.98356 0.0898396 2.82244 0.253496L0.167341 3.01277C-0.0560599 3.2388 -0.0560599 3.60445 0.167341 3.83048C0.39017 4.05651 0.75184 4.05651 0.97524 3.83048L3.42808 1.27549L5.88148 3.83048C6.10488 4.05651 6.46598 4.05651 6.68938 3.83048C6.91278 3.60445 6.91278 3.2388 6.68938 3.01277L4.03429 0.253496Z"
+                      />
+                    </g>
+                  </svg>
+                  <svg
+                      :class="[
+                    'main__apartments-sort-icon',
+                    'main__apartments-sort-icon_flipped',
+                    {'main__apartments-sort-icon_active': isSortActive('price', 'desc')}
+                    ]"
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="7"
+                      height="4"
+                      viewBox="0 0 7 4"
+                      fill="currentColor"
+                  >
+                    <g opacity="0.4">
+                      <path fill-rule="evenodd" clip-rule="evenodd"
+                            d="M4.03429 0.253496C3.87202 0.0898395 3.65776 0 3.42808 0C3.19896 0 2.98356 0.0898396 2.82244 0.253496L0.167341 3.01277C-0.0560599 3.2388 -0.0560599 3.60445 0.167341 3.83048C0.39017 4.05651 0.75184 4.05651 0.97524 3.83048L3.42808 1.27549L5.88148 3.83048C6.10488 4.05651 6.46598 4.05651 6.68938 3.83048C6.91278 3.60445 6.91278 3.2388 6.68938 3.01277L4.03429 0.253496Z"
+                      />
+                    </g>
+                  </svg>
+                </span>
+            </div>
+          </th>
+        </tr>
+        </thead>
+
+        <tbody>
+        <tr v-for="apt in visibleApartments" :key="apt.id" class="main__apartments-row">
+          <td><img :src="apt.image" alt="Планировка" /></td>
+          <td class="text-medium"><p>{{ apt.rooms }}-комнатная {{ apt.title }}</p></td>
+          <td><p>{{ apt.area }}</p></td>
+          <td><p>{{ apt.floor }} <span class="text-opacity">из {{ apt.totalFloors }} этаж</span></p></td>
+          <td><p>{{ apt.price.toLocaleString('ru-RU') }}</p></td>
+        </tr>
+        </tbody>
+      </table>
+
+      <div class="main__apartments-cards" v-else-if="isMedium">
+        <div class="main__apartments-header">
+          <button
+              @click="toggleSort('area')"
+              class="main__apartments-sort"
+              type="button"
+          >
+            <span class="main__apartments-sort-text">S, м²</span>
+            <span class="main__apartments-sort-icons">
+              <svg
+                  :class="{'main__apartments-sort-icon_active': isSortActive('area', 'desc')}"
+                  class="main__apartments-sort-icon"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="7"
+                  height="4"
+                  viewBox="0 0 7 4"
+                  fill="currentColor"
+              >
+                <g opacity="0.4">
+                  <path fill-rule="evenodd" clip-rule="evenodd"
+                        d="M4.03429 0.253496C3.87202 0.0898395 3.65776 0 3.42808 0C3.19896 0 2.98356 0.0898396 2.82244 0.253496L0.167341 3.01277C-0.0560599 3.2388 -0.0560599 3.60445 0.167341 3.83048C0.39017 4.05651 0.75184 4.05651 0.97524 3.83048L3.42808 1.27549L5.88148 3.83048C6.10488 4.05651 6.46598 4.05651 6.68938 3.83048C6.91278 3.60445 6.91278 3.2388 6.68938 3.01277L4.03429 0.253496Z"
+                  />
+                </g>
+              </svg>
+              <svg
+                  :class="[
                   'main__apartments-sort-icon',
                   'main__apartments-sort-icon_flipped',
-                  {'main__apartments-sort-icon_active': isSortActive('price', 'asc')}
-                  ]"
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="7"
-                    height="4"
-                    viewBox="0 0 7 4"
-                    fill="currentColor"
-                >
-                  <g opacity="0.4">
-                    <path fill-rule="evenodd" clip-rule="evenodd"
-                          d="M4.03429 0.253496C3.87202 0.0898395 3.65776 0 3.42808 0C3.19896 0 2.98356 0.0898396 2.82244 0.253496L0.167341 3.01277C-0.0560599 3.2388 -0.0560599 3.60445 0.167341 3.83048C0.39017 4.05651 0.75184 4.05651 0.97524 3.83048L3.42808 1.27549L5.88148 3.83048C6.10488 4.05651 6.46598 4.05651 6.68938 3.83048C6.91278 3.60445 6.91278 3.2388 6.68938 3.01277L4.03429 0.253496Z"
-                    />
-                  </g>
-                </svg>
-              </span>
-            </button>
-          </div>
+                  {'main__apartments-sort-icon_active': isSortActive('area', 'asc')}
+                ]"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="7"
+                  height="4"
+                  viewBox="0 0 7 4"
+                  fill="currentColor"
+              >
+                <g opacity="0.4">
+                  <path fill-rule="evenodd" clip-rule="evenodd"
+                        d="M4.03429 0.253496C3.87202 0.0898395 3.65776 0 3.42808 0C3.19896 0 2.98356 0.0898396 2.82244 0.253496L0.167341 3.01277C-0.0560599 3.2388 -0.0560599 3.60445 0.167341 3.83048C0.39017 4.05651 0.75184 4.05651 0.97524 3.83048L3.42808 1.27549L5.88148 3.83048C6.10488 4.05651 6.46598 4.05651 6.68938 3.83048C6.91278 3.60445 6.91278 3.2388 6.68938 3.01277L4.03429 0.253496Z"
+                  />
+                </g>
+              </svg>
+            </span>
+          </button>
+          <button @click="toggleSort('floor')" class="main__apartments-sort" type="button">
+            <span class="main__apartments-sort-text">Этаж</span>
+            <span class="main__apartments-sort-icons">
+              <svg
+                  :class="{'main__apartments-sort-icon_active': isSortActive('floor', 'desc')}"
+                  class="main__apartments-sort-icon"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="7"
+                  height="4"
+                  viewBox="0 0 7 4"
+                  fill="currentColor"
+              >
+                <g opacity="0.4">
+                  <path fill-rule="evenodd" clip-rule="evenodd"
+                        d="M4.03429 0.253496C3.87202 0.0898395 3.65776 0 3.42808 0C3.19896 0 2.98356 0.0898396 2.82244 0.253496L0.167341 3.01277C-0.0560599 3.2388 -0.0560599 3.60445 0.167341 3.83048C0.39017 4.05651 0.75184 4.05651 0.97524 3.83048L3.42808 1.27549L5.88148 3.83048C6.10488 4.05651 6.46598 4.05651 6.68938 3.83048C6.91278 3.60445 6.91278 3.2388 6.68938 3.01277L4.03429 0.253496Z"
+                  />
+                </g>
+              </svg>
+              <svg
+                  :class="[
+                  'main__apartments-sort-icon',
+                  'main__apartments-sort-icon_flipped',
+                  {'main__apartments-sort-icon_active': isSortActive('floor', 'asc')}
+                ]"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="7"
+                  height="4"
+                  viewBox="0 0 7 4"
+                  fill="currentColor"
+              >
+                <g opacity="0.4">
+                  <path fill-rule="evenodd" clip-rule="evenodd"
+                        d="M4.03429 0.253496C3.87202 0.0898395 3.65776 0 3.42808 0C3.19896 0 2.98356 0.0898396 2.82244 0.253496L0.167341 3.01277C-0.0560599 3.2388 -0.0560599 3.60445 0.167341 3.83048C0.39017 4.05651 0.75184 4.05651 0.97524 3.83048L3.42808 1.27549L5.88148 3.83048C6.10488 4.05651 6.46598 4.05651 6.68938 3.83048C6.91278 3.60445 6.91278 3.2388 6.68938 3.01277L4.03429 0.253496Z"
+                  />
+                </g>
+              </svg>
+            </span>
+          </button>
+          <button @click="toggleSort('price')" class="main__apartments-sort" type="button">
+            <span class="main__apartments-sort-text text-green">Цена, ₽</span>
+            <span class="main__apartments-sort-icons">
+              <svg
+                  :class="{'main__apartments-sort-icon_active': isSortActive('price', 'desc')}"
+                  class="main__apartments-sort-icon"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="7"
+                  height="4"
+                  viewBox="0 0 7 4"
+                  fill="currentColor"
+              >
+                <g opacity="0.4">
+                  <path fill-rule="evenodd" clip-rule="evenodd"
+                        d="M4.03429 0.253496C3.87202 0.0898395 3.65776 0 3.42808 0C3.19896 0 2.98356 0.0898396 2.82244 0.253496L0.167341 3.01277C-0.0560599 3.2388 -0.0560599 3.60445 0.167341 3.83048C0.39017 4.05651 0.75184 4.05651 0.97524 3.83048L3.42808 1.27549L5.88148 3.83048C6.10488 4.05651 6.46598 4.05651 6.68938 3.83048C6.91278 3.60445 6.91278 3.2388 6.68938 3.01277L4.03429 0.253496Z"
+                  />
+                </g>
+              </svg>
+              <svg
+                  :class="[
+                'main__apartments-sort-icon',
+                'main__apartments-sort-icon_flipped',
+                {'main__apartments-sort-icon_active': isSortActive('price', 'asc')}
+                ]"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="7"
+                  height="4"
+                  viewBox="0 0 7 4"
+                  fill="currentColor"
+              >
+                <g opacity="0.4">
+                  <path fill-rule="evenodd" clip-rule="evenodd"
+                        d="M4.03429 0.253496C3.87202 0.0898395 3.65776 0 3.42808 0C3.19896 0 2.98356 0.0898396 2.82244 0.253496L0.167341 3.01277C-0.0560599 3.2388 -0.0560599 3.60445 0.167341 3.83048C0.39017 4.05651 0.75184 4.05651 0.97524 3.83048L3.42808 1.27549L5.88148 3.83048C6.10488 4.05651 6.46598 4.05651 6.68938 3.83048C6.91278 3.60445 6.91278 3.2388 6.68938 3.01277L4.03429 0.253496Z"
+                  />
+                </g>
+              </svg>
+            </span>
+          </button>
+        </div>
 
-          <div v-for="apt in visibleApartments" :key="apt.id" class="main__apartments-card">
-            <div class="main__apartments-card-info">
-              <div class="main__apartments-title">
-                {{ apt.rooms }}-комнатная {{ apt.title }}
-              </div>
-              <div class="main__apartments-details">
-                <p class="text-medium">{{ apt.area }} м²</p>
-                <p>{{ apt.floor }} <span class="text-opacity">из {{ apt.totalFloors }} этаж</span></p>
-                <p class="text-medium">{{ apt.price.toLocaleString('ru-RU') }} ₽</p>
-              </div>
+        <div v-for="apt in visibleApartments" :key="apt.id" class="main__apartments-card">
+          <div class="main__apartments-card-info">
+            <div class="main__apartments-title">
+              {{ apt.rooms }}-комнатная {{ apt.title }}
             </div>
-            <img :src="apt.image" alt="Планировка" class="main__apartments-card-image" />
+            <div class="main__apartments-details">
+              <p class="text-medium">{{ apt.area }} м²</p>
+              <p>{{ apt.floor }} <span class="text-opacity">из {{ apt.totalFloors }} этаж</span></p>
+              <p class="text-medium">{{ apt.price.toLocaleString('ru-RU') }} ₽</p>
+            </div>
           </div>
+          <img :src="apt.image" alt="Планировка" class="main__apartments-card-image" />
         </div>
       </div>
-      <div class="main__empty-apartments" v-else>
-        Увы, нет подходящих квартир, попробуйте изменить настройки
-      </div>
-      <button class="main__btn" v-if="visibleCount < allApartments.length" @click="loadMore" type="button">
-        Загрузить ещё
-      </button>
-    </main>
-  </div>
+    </div>
+    <div class="main__empty-apartments" v-else>
+      Увы, нет подходящих квартир, попробуйте изменить настройки
+    </div>
+    <button class="main__btn" v-if="visibleCount < allApartments.length" @click="loadMore" type="button">
+      Загрузить ещё
+    </button>
+  </main>
+
 </template>
 
 <style scoped lang="sass">
 @use '@styles/variables.sass' as *
 @use '@styles/mixins.sass' as *
+
 .main
+  width: 100%
   &__title
     font-size: 54px
 

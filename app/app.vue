@@ -25,6 +25,8 @@ onMounted(async () => {
   display: flex
   gap: 80px
   align-items: start
+  justify-content: space-between
   @media (max-width: 1440px)
     justify-content: space-between
+    gap: 40px
 </style>
