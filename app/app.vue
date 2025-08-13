@@ -1,6 +1,30 @@
+<script setup lang="ts">
+import AsideFilters from "@components-layouts/AsideFilters.vue";
+import MainBlock from "@components-layouts/MainBlock.vue";
+import ScrollUp from "@components-buttons/ScrollUp.vue";
+
+import {useApartmentsStore} from "@stores/apartment";
+
+const store = useApartmentsStore()
+
+onMounted(async () => {
+  await store.loadApartments()
+})
+</script>
+
 <template>
-  <div>
-    <NuxtRouteAnnouncer />
-    <NuxtWelcome />
+  <div class="container">
+    <MainBlock/>
+    <AsideFilters/>
   </div>
+  <ScrollUp />
 </template>
+
+<style lang="sass">
+.container
+  display: flex
+  gap: 80px
+  align-items: start
+  @media (max-width: 1440px)
+    justify-content: space-between
+</style>

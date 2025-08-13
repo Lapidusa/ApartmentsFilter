@@ -14,5 +14,44 @@
     {
       "path": "./.nuxt/tsconfig.node.json"
     }
-  ]
+  ],
+  "compilerOptions": {
+    "strict": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": [
+        "./*"
+      ],
+      "@fonts/*": [
+        "assets/fonts/*"
+      ],
+      "@icons/*": [
+        "assets/icons/*"
+      ],
+      "@styles/*": [
+        "assets/styles/*"
+      ],
+      "@components-buttons/*": [
+        "app/components/buttons/*"
+      ],
+      "@components-inputs/*": [
+        "app/components/inputs/*"
+      ],
+      "@components-layouts/*": [
+        "app/components/layouts/*"
+      ],
+      "@stores/*": [
+        "stores/*"
+      ],
+      "@interfaces/*": [
+        "interfaces/*"
+      ],
+      "#components": [
+        ".nuxt/components"
+      ],
+      "#imports": [
+        ".nuxt/imports"
+      ]
+    }
+  }
 }
