@@ -1,0 +1,23 @@
+@use 'variables' as *
+
+@mixin btn-stroke
+  border: 1px solid var(--addition-stroke)
+  padding: $padding-btn
+  border-radius: 99px
+  background: none
+  font-weight: 500
+
+
+@mixin btn-circle($bg, $w-h, $color)
+  background-color: $bg
+  border-radius: 99px
+  width: $w-h
+  height: $w-h
+  color: $color
+  border: none
+
+
+@mixin flex-center
+  display: flex
+  align-items: center
+  justify-content: center
