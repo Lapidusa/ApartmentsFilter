@@ -15,7 +15,6 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits(['update:modelValue', 'change'])
 
 const trackStyle = computed(() => {
-  console.log('Values:', props.modelValue, props.min, props.max)
   const leftPos = ((props.modelValue[0] - props.min) / (props.max - props.min)) * 100
   const rightPos = 100 - ((props.modelValue[1] - props.min) / (props.max - props.min)) * 100
 

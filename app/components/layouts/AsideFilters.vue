@@ -5,15 +5,29 @@ import { computed, ref, watch, onMounted } from "vue";
 
 const store = useApartmentsStore();
 const isLoading = computed(() => store.isLoaded)
-const activeType = ref<string | null>(null)
 
-const minPrice = ref(0)
-const maxPrice = ref(0)
-const minArea = ref(0)
-const maxArea = ref(0)
+const activeType = computed({
+  get: () => store.filters.rooms?.toString() ?? null,
+  set: (val: string | null) => store.setFilter('rooms', val ? Number(val) : null)
+});
 
-const priceRange = ref<[number, number]>([minPrice.value, maxPrice.value])
-const areaRange = ref<[number, number]>([minArea.value, maxArea.value])
+const priceRange = computed({
+  get: () => store.currentPriceRange,
+  set: (val: [number, number]) => {
+    store.currentPriceRange = val;
+    store.setFilter('priceMin', val[0]);
+    store.setFilter('priceMax', val[1]);
+  }
+});
+
+const areaRange = computed({
+  get: () => store.currentAreaRange,
+  set: (val: [number, number]) => {
+    store.currentAreaRange = val;
+    store.setFilter('areaMin', val[0]);
+    store.setFilter('areaMax', val[1]);
+  }
+});
 
 const apartmentTypes = [
   { label: '1к', value: '1' },
@@ -23,58 +37,17 @@ const apartmentTypes = [
 ]
 
 const availableTypes = computed(() => {
-  const set = new Set(store.allApartments.map(a => String(a.rooms)));
+  const set = new Set(store.allApartments.map(a => a.rooms.toString()));
   return apartmentTypes.map(t => ({
     ...t,
     disabled: !set.has(t.value)
   }));
 });
 
-const initialData = () =>{
-  const prices = store.allApartments.map(a => a.price)
-  const areas = store.allApartments.map(a => a.area)
-
-  const rawMinPrice = Math.min(...prices)
-  const rawMaxPrice = Math.max(...prices)
-  const magnitudePrice = Math.pow(10, Math.floor(Math.log10(rawMinPrice)) - 1)
-
-  minPrice.value = Math.floor(rawMinPrice / magnitudePrice) * magnitudePrice
-  maxPrice.value = Math.ceil(rawMaxPrice / magnitudePrice) * magnitudePrice
-  priceRange.value = [minPrice.value, maxPrice.value]
-
-  const rawMinArea = Math.min(...areas)
-  const rawMaxArea = Math.max(...areas)
-
-  minArea.value = Math.floor(rawMinArea)
-  maxArea.value = Math.ceil(rawMaxArea)
-  areaRange.value = [minArea.value, maxArea.value]
-}
-
-onMounted(async () => {
-  await store.loadApartments()
-  initialData()
-})
-
-watch(activeType, (val) => {
-  store.setFilter('rooms', val ? Number(val) : null)
-})
-
-watch(priceRange, ([min, max]) => {
-  store.setFilter('priceMin', min)
-  store.setFilter('priceMax', max)
-})
-
-watch(areaRange, ([min, max]) => {
-  store.setFilter('areaMin', min)
-  store.setFilter('areaMax', max)
-})
-
 const resetFilters = () => {
-  store.resetFilters()
-  activeType.value = null
-  priceRange.value = [minPrice.value, maxPrice.value]
-  areaRange.value = [minArea.value, maxArea.value]
+  store.resetFilters();
 }
+
 </script>
 
 <template>
@@ -97,8 +70,8 @@ const resetFilters = () => {
       <label class="aside__label">Стоимость квартиры</label>
       <DoubleRangeSlider
           v-model="priceRange"
-          :min="minPrice"
-          :max="maxPrice"
+          :min="store.minPrice"
+          :max="store.maxPrice"
           :step="100000"
           @change="store.setFilter('priceMin', $event[0]); store.setFilter('priceMax', $event[1])"
       />
@@ -108,8 +81,8 @@ const resetFilters = () => {
       <label class="aside__label">Площадь квартиры</label>
       <DoubleRangeSlider
           v-model="areaRange"
-          :min="minArea"
-          :max="maxArea"
+          :min="store.minArea"
+          :max="store.maxArea"
           :step="1"
           @change="store.setFilter('areaMin', $event[0]); store.setFilter('areaMax', $event[1])"
       />

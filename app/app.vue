@@ -2,10 +2,10 @@
 import AsideFilters from "@components-layouts/AsideFilters.vue";
 import MainBlock from "@components-layouts/MainBlock.vue";
 import ScrollUp from "@components-buttons/ScrollUp.vue";
-
 import {useApartmentsStore} from "@stores/apartment";
 
-const store = useApartmentsStore()
+const store = useApartmentsStore();
+import {onMounted} from "vue";
 
 onMounted(async () => {
   await store.loadApartments()
