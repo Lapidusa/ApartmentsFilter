@@ -228,7 +228,7 @@ onBeforeUnmount(() => {
             <span class="main__apartments-sort-text">S, м²</span>
             <span class="main__apartments-sort-icons">
               <svg
-                  :class="{'main__apartments-sort-icon_active': isSortActive('area', 'desc')}"
+                  :class="{'main__apartments-sort-icon_active': isSortActive('area', 'asc')}"
                   class="main__apartments-sort-icon"
                   xmlns="http://www.w3.org/2000/svg"
                   width="7"
@@ -246,7 +246,7 @@ onBeforeUnmount(() => {
                   :class="[
                   'main__apartments-sort-icon',
                   'main__apartments-sort-icon_flipped',
-                  {'main__apartments-sort-icon_active': isSortActive('area', 'asc')}
+                  {'main__apartments-sort-icon_active': isSortActive('area', 'desc')}
                 ]"
                   xmlns="http://www.w3.org/2000/svg"
                   width="7"
@@ -266,7 +266,7 @@ onBeforeUnmount(() => {
             <span class="main__apartments-sort-text">Этаж</span>
             <span class="main__apartments-sort-icons">
               <svg
-                  :class="{'main__apartments-sort-icon_active': isSortActive('floor', 'desc')}"
+                  :class="{'main__apartments-sort-icon_active': isSortActive('floor', 'asc')}"
                   class="main__apartments-sort-icon"
                   xmlns="http://www.w3.org/2000/svg"
                   width="7"
@@ -284,7 +284,7 @@ onBeforeUnmount(() => {
                   :class="[
                   'main__apartments-sort-icon',
                   'main__apartments-sort-icon_flipped',
-                  {'main__apartments-sort-icon_active': isSortActive('floor', 'asc')}
+                  {'main__apartments-sort-icon_active': isSortActive('floor', 'desc')}
                 ]"
                   xmlns="http://www.w3.org/2000/svg"
                   width="7"
@@ -304,7 +304,7 @@ onBeforeUnmount(() => {
             <span class="main__apartments-sort-text text-green">Цена, ₽</span>
             <span class="main__apartments-sort-icons">
               <svg
-                  :class="{'main__apartments-sort-icon_active': isSortActive('price', 'desc')}"
+                  :class="{'main__apartments-sort-icon_active': isSortActive('price', 'asc')}"
                   class="main__apartments-sort-icon"
                   xmlns="http://www.w3.org/2000/svg"
                   width="7"
@@ -322,7 +322,7 @@ onBeforeUnmount(() => {
                   :class="[
                 'main__apartments-sort-icon',
                 'main__apartments-sort-icon_flipped',
-                {'main__apartments-sort-icon_active': isSortActive('price', 'asc')}
+                {'main__apartments-sort-icon_active': isSortActive('price', 'desc')}
                 ]"
                   xmlns="http://www.w3.org/2000/svg"
                   width="7"
