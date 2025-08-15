@@ -271,7 +271,12 @@ function useApartmentActions(deps: {
 
   const setSort = (key: keyof Apartment) => {
     if (deps.sortKey.value === key) {
-      deps.sortOrder.value = deps.sortOrder.value === 'asc' ? 'desc' : 'asc';
+      if (deps.sortOrder.value === 'asc') {
+        deps.sortOrder.value = 'desc';
+      } else {
+        deps.sortKey.value = '';
+        deps.sortOrder.value = 'asc';
+      }
     } else {
       deps.sortKey.value = key;
       deps.sortOrder.value = 'asc';

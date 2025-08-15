@@ -33,6 +33,7 @@ const loadMore = () => {
 }
 
 const toggleSort = (key: keyof Apartment) => {
+  console.log(key)
   store.setSort(key)
 }
 
