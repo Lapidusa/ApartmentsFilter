@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import DoubleRangeSlider from "@components-inputs/DoubleRangeSlider.vue";
 import { useApartmentsStore } from "@stores/apartment";
-import { computed, ref, watch, onMounted } from "vue";
+import { computed } from "vue";
 
 const store = useApartmentsStore();
 const isLoading = computed(() => store.isLoaded)
@@ -52,8 +52,9 @@ const resetFilters = () => {
 
 <template>
   <aside class="aside" v-if="isLoading">
-    <div class="aside__types">
-      <label class="aside__type" v-for="type in availableTypes" :key="type.value">
+    <fieldset class="aside__types">
+      <legend class="sr-only">Тип квартиры</legend>
+      <div class="aside__type" v-for="type in availableTypes" :key="type.value">
         <input
             type="radio"
             name="apartmentType"
@@ -63,8 +64,8 @@ const resetFilters = () => {
             :disabled="type.disabled"
         />
         <span class="aside__type-text">{{type.label}}</span>
-      </label>
-    </div>
+      </div>
+    </fieldset>
 
     <div class="aside__slider">
       <label class="aside__label">Стоимость квартиры</label>
@@ -88,7 +89,7 @@ const resetFilters = () => {
       />
     </div>
 
-    <button class="aside__reset" @click="resetFilters">
+    <button type="button" class="aside__reset" @click="resetFilters">
       Сбросить параметры
       <img src="@icons/cross-mini.svg" alt="Сбросить параметры">
     </button>
@@ -106,8 +107,10 @@ const resetFilters = () => {
   flex-direction: column
   gap: 24px
   align-items: start
+
   @media (max-width: 1439px)
     padding: 20px
+
   &__types
     display: flex
     gap: 8px
@@ -115,8 +118,10 @@ const resetFilters = () => {
   &__type
     position: relative
     cursor: pointer
+
   &__slider
     width: 100%
+
   &__type-input
     position: absolute
     opacity: 0
@@ -145,10 +150,15 @@ const resetFilters = () => {
 
     &:not(:disabled) + .aside__type-text:hover
       box-shadow: var(--input-shadow)
+
+    &:focus-visible + .aside__type-text
+      outline: 2px solid var(--main-font)
+  outline-offset: 2px
   &__reset
     background: none
     border: none
     cursor: pointer
     display: flex
     gap: 8px
+
 </style>

@@ -24,6 +24,10 @@ const isMedium = computed(() =>
 
 const countLoadApartments = ref(COUNT_LOAD_APARTMENTS)
 const visibleCount = ref(countLoadApartments.value)
+
+const sortKey = ref<keyof Apartment | null>(null)
+const sortDirection = ref<'по возрастанию' | 'по убыванию' | null>(null)
+
 const onResize = () => {
   width.value = window.innerWidth
 }
@@ -33,8 +37,12 @@ const loadMore = () => {
 }
 
 const toggleSort = (key: keyof Apartment) => {
-  console.log(key)
   store.setSort(key)
+}
+
+function getAriaSort(key: keyof Apartment) {
+  if (store.sortKey !== key) return 'none'
+  return store.sortOrder === 'asc' ? 'ascending' : 'descending'
 }
 
 const isSortActive = (key: keyof Apartment, order: 'asc' | 'desc') =>
@@ -56,7 +64,7 @@ onBeforeUnmount(() => {
   </div>
   <main class="main" v-else>
     <h1 class="main__title">Квартиры</h1>
-    <div class="main__apartments" v-if="visibleApartments.length !== 0">
+    <div class="main__apartments" v-if="visibleApartments.length">
       <table class="main__apartments-table" v-if="isWide">
         <thead>
         <tr class="main__apartments-header-row">
@@ -67,59 +75,53 @@ onBeforeUnmount(() => {
             <div class="main__apartments-inner ">Квартира</div>
           </th>
 
-          <th
-              @click="toggleSort('area')"
-              class="main__apartments-sort"
-              role="button"
-              tabindex="0"
-          >
-            <div class="main__apartments-inner">
+          <th class="main__apartments-header-cell" scope="col" :aria-sort="getAriaSort('area')">
+            <button @click="toggleSort('area')"
+                    class="main__apartments-sort"
+                    type="button">
               <span class="main__apartments-sort-text">S, м²</span>
               <span class="main__apartments-sort-icons">
-                  <svg
-                      :class="{'main__apartments-sort-icon_active': isSortActive('area', 'asc')}"
-                      class="main__apartments-sort-icon"
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="7"
-                      height="4"
-                      viewBox="0 0 7 4"
-                      fill="currentColor"
-                  >
-                    <g opacity="0.4">
-                      <path fill-rule="evenodd" clip-rule="evenodd"
-                            d="M4.03429 0.253496C3.87202 0.0898395 3.65776 0 3.42808 0C3.19896 0 2.98356 0.0898396 2.82244 0.253496L0.167341 3.01277C-0.0560599 3.2388 -0.0560599 3.60445 0.167341 3.83048C0.39017 4.05651 0.75184 4.05651 0.97524 3.83048L3.42808 1.27549L5.88148 3.83048C6.10488 4.05651 6.46598 4.05651 6.68938 3.83048C6.91278 3.60445 6.91278 3.2388 6.68938 3.01277L4.03429 0.253496Z"
-                      />
-                    </g>
-                  </svg>
-                  <svg
-                      :class="[
-                      'main__apartments-sort-icon',
-                      'main__apartments-sort-icon_flipped',
-                      {'main__apartments-sort-icon_active': isSortActive('area', 'desc')}
-                    ]"
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="7"
-                      height="4"
-                      viewBox="0 0 7 4"
-                      fill="currentColor"
-                  >
-                    <g opacity="0.4">
-                      <path fill-rule="evenodd" clip-rule="evenodd"
-                            d="M4.03429 0.253496C3.87202 0.0898395 3.65776 0 3.42808 0C3.19896 0 2.98356 0.0898396 2.82244 0.253496L0.167341 3.01277C-0.0560599 3.2388 -0.0560599 3.60445 0.167341 3.83048C0.39017 4.05651 0.75184 4.05651 0.97524 3.83048L3.42808 1.27549L5.88148 3.83048C6.10488 4.05651 6.46598 4.05651 6.68938 3.83048C6.91278 3.60445 6.91278 3.2388 6.68938 3.01277L4.03429 0.253496Z"
-                      />
-                    </g>
-                  </svg>
-                </span>
-            </div>
+                <svg
+                    :class="{'main__apartments-sort-icon_active': isSortActive('area', 'asc')}"
+                    class="main__apartments-sort-icon"
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="7"
+                    height="4"
+                    viewBox="0 0 7 4"
+                    fill="currentColor"
+                >
+                  <g opacity="0.4">
+                    <path fill-rule="evenodd" clip-rule="evenodd"
+                          d="M4.03429 0.253496C3.87202 0.0898395 3.65776 0 3.42808 0C3.19896 0 2.98356 0.0898396 2.82244 0.253496L0.167341 3.01277C-0.0560599 3.2388 -0.0560599 3.60445 0.167341 3.83048C0.39017 4.05651 0.75184 4.05651 0.97524 3.83048L3.42808 1.27549L5.88148 3.83048C6.10488 4.05651 6.46598 4.05651 6.68938 3.83048C6.91278 3.60445 6.91278 3.2388 6.68938 3.01277L4.03429 0.253496Z"
+                    />
+                  </g>
+                </svg>
+                <svg
+                    :class="[
+                    'main__apartments-sort-icon',
+                    'main__apartments-sort-icon_flipped',
+                    {'main__apartments-sort-icon_active': isSortActive('area', 'desc')}
+                  ]"
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="7"
+                    height="4"
+                    viewBox="0 0 7 4"
+                    fill="currentColor"
+                >
+                  <g opacity="0.4">
+                    <path fill-rule="evenodd" clip-rule="evenodd"
+                          d="M4.03429 0.253496C3.87202 0.0898395 3.65776 0 3.42808 0C3.19896 0 2.98356 0.0898396 2.82244 0.253496L0.167341 3.01277C-0.0560599 3.2388 -0.0560599 3.60445 0.167341 3.83048C0.39017 4.05651 0.75184 4.05651 0.97524 3.83048L3.42808 1.27549L5.88148 3.83048C6.10488 4.05651 6.46598 4.05651 6.68938 3.83048C6.91278 3.60445 6.91278 3.2388 6.68938 3.01277L4.03429 0.253496Z"
+                    />
+                  </g>
+                </svg>
+              </span>
+            </button>
           </th>
 
-          <th
-              @click="toggleSort('floor')"
-              class="main__apartments-sort"
-              role="button"
-              tabindex="0"
-          >
-            <div class="main__apartments-inner">
+          <th class="main__apartments-header-cell" scope="col" :aria-sort="getAriaSort('floor')">
+            <button @click="toggleSort('floor')"
+                    class="main__apartments-sort"
+                    type="button">
               <span class="main__apartments-sort-text">Этаж</span>
               <span class="main__apartments-sort-icons">
                   <svg
@@ -156,16 +158,14 @@ onBeforeUnmount(() => {
                     </g>
                   </svg>
                 </span>
-            </div>
+            </button>
           </th>
 
-          <th
-              @click="toggleSort('price')"
-              class="main__apartments-sort"
-              role="button"
-              tabindex="0"
-          >
-            <div class="main__apartments-inner">
+          <th class="main__apartments-header-cell" scope="col" :aria-sort="getAriaSort('floor')">
+            <button @click="toggleSort('price')"
+                    class="main__apartments-sort"
+                    type="button"
+            >
               <span class="main__apartments-sort-text text-green">Цена, ₽</span>
               <span class="main__apartments-sort-icons">
                   <svg
@@ -202,14 +202,14 @@ onBeforeUnmount(() => {
                     </g>
                   </svg>
                 </span>
-            </div>
+            </button>
           </th>
         </tr>
         </thead>
 
-        <tbody>
+        <tbody aria-live="polite">
         <tr v-for="apt in visibleApartments" :key="apt.id" class="main__apartments-row">
-          <td><img :src="apt.image" alt="Планировка" /></td>
+          <td><img :src="apt.image" :alt="'Планировка ' + apt.rooms + '-комнатной квартиры '+apt.title" /></td>
           <td class="text-medium"><p>{{ apt.rooms }}-комнатная {{ apt.title }}</p></td>
           <td><p>{{ apt.area }}</p></td>
           <td><p>{{ apt.floor }} <span class="text-opacity">из {{ apt.totalFloors }} этаж</span></p></td>
@@ -218,11 +218,13 @@ onBeforeUnmount(() => {
         </tbody>
       </table>
 
-      <div class="main__apartments-cards" v-else-if="isMedium">
+      <div class="main__apartments-cards" role="list" v-else-if="isMedium">
         <div class="main__apartments-header">
           <button
               @click="toggleSort('area')"
               class="main__apartments-sort"
+              aria-label="Сортировать по площади"
+              :aria-pressed="isSortActive('area','asc') || isSortActive('area','desc')"
               type="button"
           >
             <span class="main__apartments-sort-text">S, м²</span>
@@ -262,7 +264,11 @@ onBeforeUnmount(() => {
               </svg>
             </span>
           </button>
-          <button @click="toggleSort('floor')" class="main__apartments-sort" type="button">
+          <button @click="toggleSort('floor')"
+                  class="main__apartments-sort"
+                  aria-label="Сортировать по этажам"
+                  :aria-pressed="isSortActive('floor','asc') || isSortActive('floor','desc')"
+                  type="button">
             <span class="main__apartments-sort-text">Этаж</span>
             <span class="main__apartments-sort-icons">
               <svg
@@ -300,7 +306,11 @@ onBeforeUnmount(() => {
               </svg>
             </span>
           </button>
-          <button @click="toggleSort('price')" class="main__apartments-sort" type="button">
+          <button @click="toggleSort('price')"
+                  class="main__apartments-sort"
+                  aria-label="Сортировать по цене"
+                  :aria-pressed="isSortActive('price','asc') || isSortActive('price','desc')"
+                  type="button">
             <span class="main__apartments-sort-text text-green">Цена, ₽</span>
             <span class="main__apartments-sort-icons">
               <svg
@@ -340,7 +350,7 @@ onBeforeUnmount(() => {
           </button>
         </div>
 
-        <div v-for="apt in visibleApartments" :key="apt.id" class="main__apartments-card">
+        <div v-for="apt in visibleApartments" :key="apt.id" class="main__apartments-card" role="listitem">
           <div class="main__apartments-card-info">
             <div class="main__apartments-title">
               {{ apt.rooms }}-комнатная {{ apt.title }}
@@ -351,14 +361,21 @@ onBeforeUnmount(() => {
               <p class="text-medium">{{ apt.price.toLocaleString('ru-RU') }} ₽</p>
             </div>
           </div>
-          <img :src="apt.image" alt="Планировка" class="main__apartments-card-image" />
+          <img :src="apt.image"
+               :alt="'Планировка ' + apt.rooms + '-комнатной квартиры '+apt.title"
+               class="main__apartments-card-image"
+          />
         </div>
       </div>
     </div>
     <div class="main__empty-apartments" v-else>
       Увы, нет подходящих квартир, попробуйте изменить настройки
     </div>
-    <button class="main__btn" v-if="visibleCount < allApartments.length" @click="loadMore" type="button">
+    <button class="main__btn"
+            v-if="visibleCount < allApartments.length"
+            @click="loadMore"
+            aria-label="Загрузить ещё квартир"
+            type="button">
       Загрузить ещё
     </button>
   </main>
@@ -411,6 +428,9 @@ onBeforeUnmount(() => {
     border: none
     background: none
     font-size: 14px
+    display: flex
+    gap: 8px
+    align-items: center
 
     &-icons
       display: flex
@@ -430,11 +450,6 @@ onBeforeUnmount(() => {
 
     &-icon_flipped
       transform: rotate(180deg)
-
-  &__apartments-inner
-    display: flex
-    align-items: center
-    gap: 8px
 
   &__apartments-cards
     display: flex
@@ -463,7 +478,7 @@ onBeforeUnmount(() => {
     justify-content: space-between
     border: 1px solid var(--stroke-card)
     padding: 16px
-    border-radius: 8px
+    border-radius: $border-card
     font-size: 14px
 
   &__apartments-card-info
